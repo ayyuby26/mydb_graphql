@@ -1,61 +1,29 @@
-# Welcome to Grafbase!
-# Define your data models, integrate auth, permission rules, custom resolvers, search, and more with Grafbase.
-
-# Integrate Auth
-# https://grafbase.com/docs/auth
-#
-# schema @auth(providers: [{ type: oidc, issuer: "{{ env.ISSUER_URL }}" }], rules: [{ allow: private }]) {
-#   query: Query
-# }
-
-# Define Data Models
-# https://grafbase.com/docs/database
-type Post @model @search {
-  title: String!
-  slug: String! @unique
-  content: String
-  publishedAt: DateTime
-  comments: [Comment]
-  likes: Int @default(value: 0)
-  tags: [String] @length(max: 5)
-  author: User
+type Auth @model @search {
+  username: String! @unique
+  email: Email! @unique
+  password: String! 
+  validate(password: String!): Boolean @resolver(name: "validate")
 }
 
-type Comment @model @search {
-  post: Post!
-  body: String!
-  likes: Int @default(value: 0)
-  author: User
+type Account @model @search {
+  username: String! @unique
+  email: Email! @unique
+  password: String!
+  desc: String
+  saved: Account
 }
 
-type User @model {
-  name: String!
-  email: Email
-  posts: [Post]
-  comments: [Comment]
 
-  # Extend models with resolvers
-  # https://grafbase.com/docs/edge-gateway/resolvers
-  # gravatar: URL @resolver(name: "user/gravatar")
+schema
+  @auth(
+    providers: [
+      {
+        type: jwt
+        issuer: "{{ env.ISSUER_URL }}"
+        secret: "{{ env.JWT_SECRET }}"
+      }
+    ]
+  ) {
+  query: Query
+  mutation: Mutation
 }
-
-# Start your backend
-# https://grafbase.com/docs/cli
-# npx grafbase dev
-
-
-# mutation {
-#   createPost(input: {
-#     title: "Judul Post Baru"
-#     slug: "judul-post-baru"
-#     content: "Ini adalah isi dari post baru."
-#     publishedAt: "2023-08-03T12:00:00Z"
-#     tags: ["tag1", "tag2"]
-#   }) {
-#     title
-#     slug
-#     content
-#     publishedAt
-#     tags
-#   }
-# }
